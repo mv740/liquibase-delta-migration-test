@@ -49,18 +49,16 @@ jobs:
             --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;PWD=$DATABRICKS_SP_TOKEN;UserAgentEntry=Liquibase;EnableArrow=0;" \
             update
 
-  snapshot:
-    needs: migrate
-    runs-on: ubuntu-latest
-    steps:
+      # 5. Capture a schema snapshot after the migration completes
       - name: Capture Schema Snapshot
         run: |
           liquibase \
+            --search-path=db/databricks \
             --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;PWD=$DATABRICKS_SP_TOKEN;UserAgentEntry=Liquibase;EnableArrow=0;" \
             --snapshot-format=json \
             snapshot > current-schema.json
 
-      # 3. Upload the snapshot file as a visible GitHub Actions artifact
+      # 6. Upload the snapshot file as a visible GitHub Actions artifact
       - name: Upload Schema Artifact
         uses: actions/upload-artifact@v4
         with:
