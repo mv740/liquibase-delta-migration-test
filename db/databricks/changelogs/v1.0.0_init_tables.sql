@@ -6,5 +6,6 @@ CREATE TABLE test_nprod.liquid_base_test.employees (
     name STRING,
     role STRING,
     value INT
-) USING DELTA;
---rollback DROP TABLE default.employees;
+) USING DELTA
+TBLPROPERTIES ('delta.columnMapping.mode' = 'id');
+--rollback DROP TABLE test_nprod.liquid_base_test.employees;
