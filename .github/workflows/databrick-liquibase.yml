@@ -38,7 +38,7 @@ jobs:
         env:
           DATABRICKS_SP_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_HOST: "dbc-64b1235d-e54c.cloud.databricks.com"
-          DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/7474656960558789"
+          DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/a7246472573e3dfe"
           DATABRICKS_CATALOG: "test_nprod"
           DATABRICKS_SCHEMA: "liquid_base_test"
         run: |
