@@ -2,9 +2,13 @@
 <databaseChangeLog
     xmlns="http://liquibase.org"
     xmlns:xsi="http://w3.org"
+    xmlns:ext="http://liquibase.org-ext"
     xsi:schemaLocation="http://liquibase.org
-    http://liquibase.org/dbchangelog-latest.xsd">
+        http://liquibase.org/dbchangelog-latest.xsd
+        http://liquibase.org-ext
+        http://liquibase.org/dbchangelog-ext.xsd">
 
-    <!-- Include your script files in execution order -->
+    <!-- Your migration file links go below here -->
     <include file="changelogs/v1.0.0_init_tables.sql" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
