@@ -44,6 +44,6 @@ jobs:
         run: |
           liquibase \
             --search-path=db/databricks \
-            --changelog-file=root-changelog.xml \
+            --changelog-file=root-changelog.yml \
             --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;PWD=$DATABRICKS_SP_TOKEN;UserAgentEntry=Liquibase;EnableArrow=0;" \
             update
