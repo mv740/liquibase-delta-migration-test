@@ -1,0 +1,67 @@
+name: Liquibase Database Migration
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+env:
+  DATABRICKS_SP_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  DATABRICKS_HOST: "dbc-64b1235d-e54c.cloud.databricks.com"
+  DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/a7246472573e3dfe"
+  DATABRICKS_CATALOG: "test_nprod"
+  DATABRICKS_SCHEMA: "liquid_base_test"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out your Liquibase changelog files from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install the free Liquibase Community edition
+      - name: Setup Liquibase
+        uses: liquibase/setup-liquibase@v3
+        with:
+          version: '5.0.3'           # Specify the Liquibase version you want
+          edition: 'community'       # Enforces the free Community edition
+
+      # 3. Download BOTH the open-source extension and the JDBC driver
+      - name: Install Databricks Extension and Driver
+        run: |
+          liquibase lpm add liquibase-databricks --global
+          liquibase lpm add databricks-jdbc --global
+
+
+      # 4. Run the Liquibase update command using the Service Principal secrets
+      # Execute Liquibase and map GitHub Secrets directly to the properties 
+      - name: Run Liquibase Update
+        run: |
+          liquibase \
+            --search-path=db/databricks \
+            --changelog-file=root-changelog.yml \
+            --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;PWD=$DATABRICKS_SP_TOKEN;UserAgentEntry=Liquibase;EnableArrow=0;" \
+            update
+
+      # 5. Capture a schema snapshot after the migration completes
+      - name: Capture Schema Snapshot
+        run: |
+          liquibase \
+            --search-path=db/databricks \
+            --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;PWD=$DATABRICKS_SP_TOKEN;UserAgentEntry=Liquibase;EnableArrow=0;" \
+            --snapshot-format=json \
+            snapshot > current-schema.json
+
+      # 6. Upload the snapshot file as a visible GitHub Actions artifact
+      - name: Upload Schema Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: databricks-schema-output
+          path: current-schema.json
+          retention-days: 7
