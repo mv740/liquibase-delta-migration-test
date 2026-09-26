@@ -1,0 +1,46 @@
+name: Liquibase Database Migration
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out your Liquibase changelog files from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install the free Liquibase Community edition
+      - name: Setup Liquibase
+        uses: liquibase/setup-liquibase@v3
+        with:
+          version: '5.0.3'           # Specify the Liquibase version you want
+          edition: 'community'       # Enforces the free Community edition
+
+      # 3. Download BOTH the open-source extension and the JDBC driver
+      - name: Install Databricks Extension and Driver
+        run: |
+          liquibase lpm add liquibase-databricks --global
+          liquibase lpm add databricks-jdbc --global
+
+
+      # 4. Run the Liquibase update command using the Service Principal secrets
+      # Execute Liquibase and map GitHub Secrets directly to the properties 
+      - name: Run Liquibase Update
+        env:
+          DATABRICKS_SP_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HOST: "dbc-64b1235d-e54c.cloud.databricks.com"
+          DATABRICKS_HTTP_PATH: "/sql/1.0/warehouses/7474656960558789"
+          DATABRICKS_CATALOG: "test_nprod"
+          DATABRICKS_SCHEMA: "liquid_base_test"
+        run: |
+          liquibase update \
+            --search-path=db/databricks \
+            --changelog-file=root-changelog.xml \
+            --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;" \
+            --username="token" \
+            --password="$DATABRICKS_SP_TOKEN"
