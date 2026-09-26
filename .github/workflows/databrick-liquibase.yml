@@ -42,9 +42,10 @@ jobs:
           DATABRICKS_CATALOG: "test_nprod"
           DATABRICKS_SCHEMA: "liquid_base_test"
         run: |
-          liquibase update \
+          liquibase \
             --search-path=db/databricks \
             --changelog-file=root-changelog.xml \
             --url="jdbc:databricks://${{ env.DATABRICKS_HOST }}:443;AuthMech=3;httpPath=${{ env.DATABRICKS_HTTP_PATH }};ConnCatalog=${{ env.DATABRICKS_CATALOG }};ConnSchema=${{ env.DATABRICKS_SCHEMA }};UID=token;" \
             --username="token" \
-            --password="$DATABRICKS_SP_TOKEN"
+            --password="$DATABRICKS_SP_TOKEN" \
+            update
